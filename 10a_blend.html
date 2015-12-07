@@ -64,7 +64,19 @@
           angle2 = Math.sin(frameCount*0.01)*Math.PI + Math.PI;
           
           // blend angle between data and angle2
+          t = (frameCount-50)*0.01;
+          if (t<0) t = 0;
+          if (t>1) t = 1;
+
+          angle3 = Math.sin(i*0.1);
           angle = blend (angle2, data[i][j]*Math.PI*2, t);
+
+
+          t2 = (frameCount-250)*0.01;
+          if (t2<0) t2 = 0;
+          if (t2>1) t2 = 1;
+
+          angle = blend (angle, angle3, t2);
 
           //blend length between len0 and len1
           len = blend (len0, len1, t);

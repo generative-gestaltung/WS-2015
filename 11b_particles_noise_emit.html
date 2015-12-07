@@ -31,7 +31,7 @@
 
     var initNoise = function() {
 
-      var NOISE_SIZE = 1000;
+      var NOISE_SIZE = 5000;
       for (i=0; i<NOISE_SIZE; i++) {
         noiseField[i] = [];
       }
@@ -117,7 +117,7 @@
       }
     }
 
-    MAX_LIFETIME = 60.0;
+    MAX_LIFETIME = 100.0;
     var emit = function (particle) {
 
       particle.lifeTime = MAX_LIFETIME;
@@ -125,7 +125,7 @@
       particle.position.y = 500;
 
       particle.velocity.x = 0;
-      particle.velocity.y = -Math.random()*5-3;
+      particle.velocity.y = 0; //-Math.random()*5-3;
 
     }
 
@@ -144,14 +144,14 @@
           var dampen = 0.999;
 
           // update velocity with forces
-          x = particle.position.x * 0.1;
-          y = particle.position.y * 0.1;
-          g = -0.04;
+          x = particle.position.x*0.2;
+          y = particle.position.y*0.2;
+          g = -0.04; //-0.09;
 
-          noiseStrength = {x:0.9, y:0.1};
-          force = noise (x+frameCount*0.1, y+frameCount*0.1);
+          noiseStrength = {x:0.5, y:0.85};
+          force = noise (x+frameCount*0.1, y);
           particle.velocity.x += (force.x - 0.5)*noiseStrength.x;
-          particle.velocity.y += (force.y - 0.5)*noiseStrength.y - g;
+          particle.velocity.y += (force.y - 0.6)*noiseStrength.y - g;
 
 
           // check constraints
@@ -186,7 +186,7 @@
       if (particle.lifeTime<0)
         return;
 
-      S = 5; //Math.round(Math.exp(-particle.lifeTime*0.4)*10)+4;  
+      S = 2; //Math.round(Math.exp(-particle.lifeTime*0.4)*10)+4;  
       
       t = (particle.lifeTime / MAX_LIFETIME);
       r0 = 255;

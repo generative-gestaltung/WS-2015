@@ -1,0 +1,192 @@
+<!DOCTYPE HTML>
+<html>
+
+  <head>
+    <script>
+
+    var N_PARTICLES = 10000;
+    var particles = [];
+      
+    var WIDTH = 1200;
+    var HEIGHT = 600;
+
+    
+    var currentParticle = 0;
+
+    // length of vector
+    var calcLength = function (v0) {
+      return Math.sqrt(v0.x*v0.x + v0.y*v0.y);
+    }
+
+    var subtract = function(v0, v1) {
+      ret = {};
+      ret.x = v0.x - v1.x;
+      ret.y = v0.y - v1.y;
+
+      return ret;
+    }
+
+    var blend = function (v0, v1, t) {
+      return v0*(1-t) + v1*t;
+    }
+
+    // helper function to set gray color
+    var fillBrightness = function (b) {
+      b = Math.round(b*255);
+      context.fillStyle = "rgba("+b+","+b+","+b+",1.0)";
+    }
+
+
+    var initParticles = function() {
+
+      particles = [];
+      // calculate random start position for each particle
+      for (i=0; i<N_PARTICLES; i++) {
+          particle = {};
+          particle.position = {};
+          particle.position.x = 0;
+          particle.position.y = 0;
+
+          // start veloctiy 0
+          particle.velocity = {};
+          particle.velocity.x = 0;
+          particle.velocity.y = 0; 
+          
+          particle.angle = 0;
+          particle.lifeTime = 0;
+          particles[i] = particle;
+        
+      }
+      currentParticle = 0;
+      // start with single particle
+      emitParticle(WIDTH/2, HEIGHT/2, 0);
+    }
+
+    var emitParticle = function (x,y, angle) {
+
+      if (currentParticle>=N_PARTICLES) return;
+      newP = particles[currentParticle];
+      newP.position.x = x;
+      newP.position.y = y;
+      newP.angle = angle
+      newP.velocity.x = Math.cos(newP.angle);
+      newP.velocity.y = -Math.sin(newP.angle);
+
+      newP.lifeTime = 10000;
+      currentParticle++;
+    }
+
+    var init = function() {
+
+      canvas = document.getElementById("myCanvas");
+      context = canvas.getContext('2d');
+      frameCount = 0;
+
+	    initParticles();
+    }
+
+
+
+
+
+
+    var draw = function() {
+
+      // the center moves on a circle around the point (50,50)
+      context.clearRect (0, 0, canvas.width, canvas.height); 
+      context.fillStyle = "rgb(0,0,0)";
+      S = 3;
+
+      for (var i=0; i<currentParticle; i++) {
+        
+          var particle = particles[i];
+
+          particle.lifeTime--;
+
+
+          // damping factor
+          var dampen = 0.9;
+
+
+          // move particle towards nearest center
+          
+          
+		      x = particle.position.x;
+		      y = particle.position.y;
+
+
+
+          // change dir with certain prob
+          if (Math.random()<0.1) {
+            particle.angle += (Math.random()-0.5)*0.1;
+            particle.velocity.x = Math.sin(particle.angle);
+            particle.velocity.y = Math.cos(particle.angle);
+          }
+
+/*
+          force = {x:0, y:0};
+          particle.velocity.x += force.x * 1;
+          particle.velocity.y += force.y * 1;
+*/
+          // check constraints
+          var nextPosition = {};
+          nextPosition.x = particle.position.x + particle.velocity.x;
+          nextPosition.y = particle.position.y + particle.velocity.y;    
+          
+          // update velocity if outside box
+          if (nextPosition.x>WIDTH || nextPosition.x<0) {
+            particle.velocity.x *= -1;
+          }
+
+          if (nextPosition.y>800 || nextPosition.y<0) {
+            //particle.velocity.x += (Math.random()*6-3);
+            particle.velocity.y *= -1;
+          }
+
+
+          // damp velocity
+          particle.velocity.x *= dampen;
+          particle.velocity.y *= dampen;
+
+
+          // update particle position
+          particle.position.x += particle.velocity.x;
+          particle.position.y += particle.velocity.y;
+
+
+          // reproduce
+          if (Math.random()<0.01) {
+            emitParticle(particle.position.x, particle.position.y, Math.random()*Math.PI*2);
+          }
+
+
+
+        // DRAW
+          context.save();
+          //fillBrightness (0);
+          context.translate(particle.position.x, particle.position.y);
+          context.fillRect(0,0,S,S);
+          context.restore();
+      }
+      
+      //initData();
+      frameCount = frameCount+1;
+      requestAnimationFrame(draw);
+    };
+
+    </script>
+  </head>
+
+  <body>
+
+
+    <canvas id="myCanvas" width="1200" height="800"></canvas>
+
+    <script>
+      init();
+      draw();		
+    </script>
+
+  </body>
+
+</html>      

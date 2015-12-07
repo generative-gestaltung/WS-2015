@@ -103,8 +103,8 @@
       }
 
       grid = [];
-      downsampleX = 15;
-      downsampleY = 15;
+      downsampleX = 20;
+      downsampleY = 20;
       for (i=0; i<(N/downsampleX)+1; i++) {
         grid[i] = [];
         for (j=0; j<(N/downsampleY)+1; j++) {
@@ -175,17 +175,19 @@
           vec2 = noise(i*0.1, j*0.1);
 
           // round noise value to 2 points
-          vec.x = (vec.x - 0.5)*50;
-          vec.y = (vec.y - 0.5)*50;
+          vec.x = Math.round(vec.x*250);
+          vec.y = Math.round(vec.y*250);
 
-          //context.fillStyle = "rgba("+vec.x+","+vec.y+",0,1.0)";
-          //context.fillRect(i*s,j*s,s,s);
+          context.fillStyle = "rgba("+vec.x+","+vec.y+",0,1.0)";
+          context.fillRect(i*s,j*s,s,s);
+          
           
 
           if (i%1==0 && j%1==0) {
             context.moveTo ((i*s),(j*s));
-            context.lineTo ((i*s+vec.x), (j*s+vec.y));
+            context.lineTo ((i*s+vec.x*0.1), (j*s+vec.y*0.1));
           }
+          
         }
       }
       

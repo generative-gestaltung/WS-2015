@@ -30,6 +30,23 @@
       initData();
     }
 
+    var fillColor = function (r, g, b) {
+      r = Math.round(r*255);
+      g = Math.round(g*255);
+      b = Math.round(b*255);
+
+      context.fillStyle = "rgb("+r+","+g+","+b+")";
+    }
+    
+
+    var strokeColor = function (r, g, b) {
+      r = Math.round(r*255);
+      g = Math.round(g*255);
+      b = Math.round(b*255);
+
+      context.strokeStyle = "rgb("+r+","+g+","+b+")";
+    }
+
 
     var center = {};
     center.x = 200;
@@ -45,23 +62,30 @@
       context.clearRect (0, 0, canvas.width, canvas.height);    
       s = 15;
 
-      context.beginPath();
       for (i=0; i<N; i++) {
         for (j=0; j<N; j++) {
 
-          context.strokeStyle = "#ff0000";
+
+          // draw lines
+          context.beginPath();
+          strokeColor (data[i][j].x, data[i][j].y,0);
+          
           context.save();
-          context.translate(i*s+s/2, j*s+s/2);
-          context.rotate(data[i][j].y*2*Math.PI);
+          tx = i*s+s/2;
+          ty = j*s+s/2 + Math.sin(frameCount*0.1+j*0.2)*100;
+          context.translate(tx, ty);
+          context.rotate (data[i][j].y*2*Math.PI+frameCount*0.1*(i%20));
           context.translate(-s/2,0);
           context.moveTo(0,0);
-          context.lineTo(data[i][j].x*14,0);
+
+          R = data[i][j].x*14;
+          context.lineTo(R,0);
           context.restore();
+          context.stroke();
+          context.closePath();
         }
       }
       
-      context.closePath();
-      context.stroke();
       //initData();
       frameCount = frameCount+1;
       requestAnimationFrame(draw);

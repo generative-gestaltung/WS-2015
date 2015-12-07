@@ -4,14 +4,19 @@
   <head>
     <script>
 
-    var N_PARTICLES = 200;
+    var W_PARTICLES = 150;
+    var H_PARTICLES = 150;
     var particles = [];
       
-    var WIDTH = 800;
-    var HEIGHT = 800;
+    var WIDTH = 1200;
+    var HEIGHT = 600;
 
-    // force
-    var noiseField = [];
+    // centers
+    var N_CENTERS = 4;
+    var centers = [];
+	  var noiseField = [];
+    var density = [];
+    var density_S = 10;
 
 
     // length of vector
@@ -28,6 +33,44 @@
       b = Math.round(b*255);
       context.fillStyle = "rgba("+b+","+b+","+b+",1.0)";
     }
+
+    var initCenters = function() {
+      for (i=0; i<N_CENTERS; i++) {
+        centers[i] = [];
+        for (j=0; j<N_CENTERS; j++) {
+          //centers[i][j] = {x:Math.random()*WIDTH, y:Math.random()*HEIGHT};
+          centers[i][j] = {x:(i-N_CENTERS/2)*WIDTH/N_CENTERS*Math.random()*0.5, y:(j-N_CENTERS/2)*HEIGHT/N_CENTERS*Math.random()};
+          centers[i][j].x += WIDTH/2;
+          centers[i][j].y += HEIGHT/2;
+		   
+        }
+      }
+    }
+
+
+    var findNearestCenter = function (particle) {
+      dist_min = 99999;
+      found = {x:0, y:0};
+      
+      x = particle.position.x;
+      y = particle.position.y;
+
+      // iterate thrue centers
+      for (var i=0; i<N_CENTERS; i++) {
+        for (var j=0; j<N_CENTERS; j++) {
+          // calc direction vector from particle pos to center
+          c = centers[i][j];
+          dir = {x:(x-c.x), y:(y-c.y)};
+          d = Math.abs(calcLength(dir));
+          if (d<dist_min) {
+            dist_min = d;
+            found = centers[i][j];
+          }
+        }
+      }
+      return found;
+    }
+
 
     var initNoise = function() {
 
@@ -87,24 +130,17 @@
     }
 
 
-    var init = function() {
-
-      canvas = document.getElementById("myCanvas");
-      context = canvas.getContext('2d');
-      frameCount = 0;
-
-      initNoise();
-
+    var initParticles = function() {
       // calculate random start position for each particle
-      for (i=0; i<N_PARTICLES; i++) {
+      for (i=0; i<W_PARTICLES; i++) {
 
         particles[i] = [];
-        for (j=0; j<N_PARTICLES; j++) {
+        for (j=0; j<H_PARTICLES; j++) {
 
           particle = {};
           particle.position = {};
-          particle.position.x = i / N_PARTICLES * WIDTH; 
-          particle.position.y = j / N_PARTICLES * HEIGHT;
+          particle.position.x = i / W_PARTICLES * WIDTH + Math.random()*0;
+          particle.position.y = j / H_PARTICLES * HEIGHT + Math.random()*0;
 
           // start veloctiy 0
           particle.velocity = {};
@@ -118,16 +154,28 @@
     }
 
 
+    var init = function() {
+
+      canvas = document.getElementById("myCanvas");
+      context = canvas.getContext('2d');
+      frameCount = 0;
+
+      initCenters();
+      initNoise();
+	    initParticles();
+    }
+
+
 
 
     var draw = function() {
 
       // the center moves on a circle around the point (50,50)
       context.clearRect (0, 0, canvas.width, canvas.height); 
-
-      // iterate over squares
-      for (i=0; i<N_PARTICLES; i++) {
-        for (j=0; j<N_PARTICLES; j++) {
+	  context.fillStyle = "rgba(25,55,0,0.8)";
+      S = 1;
+      for (var i=0; i<W_PARTICLES; i++) {
+        for (var j=0; j<H_PARTICLES; j++) {
         
           var particle = particles[i][j];
           particle.lifeTime--;
@@ -140,17 +188,37 @@
           }
 
           // damping factor
-          var dampen = 0.999;
+          var dampen = 0.9;
 
-          // update velocity with forces
-          x = particle.position.x * 0.1;
-          y = particle.position.y * 0.1;
-          noiseStrength = 0.2;
 
-          force = noise(x,y);
-          particle.velocity.x += (force.x - 0.5)*noiseStrength;
-          particle.velocity.y += (force.y - 0.5)*noiseStrength;
+          // move particle towards nearest center
+          
+          c = findNearestCenter(particle);
+          force = { x: -particle.position.x + c.x, 
+                    y: -particle.position.y + c.y};
+          
+          len = calcLength(force);
+          force.x /= len +1;
+          force.y /= len + 1;
 
+		  x = particle.position.x*0.2;
+		  y = particle.position.y*0.2;
+
+		  n = noise(x,y);
+		  n.x = (n.x-0.5)*5 + Math.random();
+		  n.y = (n.y-0.5)*5 + Math.random();
+		  t = (frameCount-40)*0.04;
+		  if (t<0) t = 0;
+		  if (t>1) t = 1;
+		  t = Math.sin(frameCount*0.01+Math.PI*3/2)*0.5+0.5;
+		  force.x = blend (force.x, n.x, t);
+		  force.y = blend (force.y, n.y, t);
+          
+		  //findNearestCenter(particle);
+
+		  stren = 0.1;
+          particle.velocity.x += force.x * stren;
+          particle.velocity.y += force.y * stren ;
 
           // check constraints
           var nextPosition = {};
@@ -158,7 +226,7 @@
           nextPosition.y = particle.position.y + particle.velocity.y;    
           
           // update velocity if outside box
-          if (nextPosition.x>800 || nextPosition.x<0) {
+          if (nextPosition.x>WIDTH || nextPosition.x<0) {
             particle.velocity.x *= -1;
           }
 
@@ -180,8 +248,7 @@
           particle.position.y += particle.velocity.y;
           
           context.save();
-          S = 2;
-          fillBrightness (0);
+          //fillBrightness (0);
           context.translate(particle.position.x, particle.position.y);
           context.fillRect(0,0,S,S);
           context.restore();
@@ -200,7 +267,7 @@
   <body>
 
 
-    <canvas id="myCanvas" width="800" height="800"></canvas>
+    <canvas id="myCanvas" width="1200" height="800"></canvas>
 
     <script>
       init();
