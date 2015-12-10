@@ -1,0 +1,111 @@
+<!DOCTYPE HTML>
+<html>
+
+  <head>
+    <script>
+
+    var preset = {
+      "box.r" : 200,
+      "box.g" : 100,
+      "box.b" : 50,
+      "box.size" : 10
+    }
+
+    var nPresets = 0;
+    var presets = [];
+
+    var updatePreset = function (id, val) {
+      preset[id] = val;
+    }
+
+    // VARIABLES
+    var canvas;
+    var context;
+    var frameCount;
+    var N = 10;
+
+
+
+    var offset = {};
+    offset.x = 0;
+    offset.y = 0;
+
+    var init = function() {
+      canvas = document.getElementById("myCanvas");
+      context = canvas.getContext('2d');
+      frameCount = 0;
+    }
+
+    var fillRGB = function (r, g, b) {
+      context.fillStyle = "rgb("+r+", "+g+", "+b+")";
+    }
+
+    var strokeRGB = function (r, g, b) {
+      context.strokeStyle = "rgb("+r+", "+g+", "+b+")";
+    }
+
+    var savePreset = function () {
+      console.log(str = JSON.stringify(preset)); 
+    }
+
+
+    var draw = function() {
+
+      context.clearRect (0, 0, canvas.width, canvas.height);  
+
+      for (i=0; i<preset["grid.N"]; i++) {
+        for (j=0; j<preset["grid.N"]; j++) {
+          fillRGB (preset["box.r"], preset["box.g"], preset["box.b"]);
+          context.fillRect (i*preset["grid.w"]+offset.x, j*preset["grid.h"]+offset.y, preset["box.size"], preset["box.size"]);
+        }
+      }
+
+      frameCount = frameCount+1;
+      requestAnimationFrame(draw);
+    };
+
+    </script>
+  </head>
+
+  <body>
+
+
+    <canvas id="myCanvas" width="800" height="400"></canvas>
+    
+    <button onclick="savePreset();">savePreset</button>
+
+    <form>
+      r
+      <input type="range" onchange="updatePreset(this.id, this.value);" id="box.r" value="90" min="0" max="255" step="1">
+      <br>
+      g
+      <input type="range" onchange="updatePreset(this.id, this.value);" id="box.g" value="90" min="0" max="255" step="1">
+      <br>
+      b
+      <input type="range" onchange="updatePreset(this.id, this.value);" id="box.b" value="90" min="0" max="255" step="1">
+      <br>
+      size
+      <input type="range" onchange="updatePreset(this.id, this.value);" id="box.size" value="1" min="1" max="10" step="1">
+      <br>
+      grid.w
+      <input type="range" onchange="updatePreset(this.id, this.value);" id="grid.w" value="1" min="1" max="100" step="1">
+      <br>
+      grid.h
+      <input type="range" onchange="updatePreset(this.id, this.value);" id="grid.h" value="1" min="1" max="100" step="1">
+      <br>
+      grid.N
+      <input type="range" onchange="updatePreset(this.id, this.value);" id="grid.N" value="1" min="1" max="100" step="1">
+      <br>
+
+    </form>
+    
+
+
+    <script>
+      init();
+      draw();		
+    </script>
+
+  </body>
+
+</html>      

@@ -94,8 +94,8 @@ var initNoise = function() {
       }
 
       grid = [];
-      downsampleX = 15;
-      downsampleY = 15;
+      downsampleX = 25;
+      downsampleY = 25;
       for (i=0; i<(NOISE_SIZE/downsampleX)+1; i++) {
         grid[i] = [];
         for (j=0; j<(NOISE_SIZE/downsampleY)+1; j++) {
@@ -178,7 +178,7 @@ var initNoise = function() {
 
 
           // change dir with certain prob
-          particle.angle = noise(frameCount%500,(i*4.3)%500).x*Math.PI*3;
+          particle.angle = noise (Math.round(frameCount*(i%10) + i*0.37)%500, (i*4.3)%500).x*Math.PI*3;
           particle.velocity.x = Math.sin(particle.angle);
           particle.velocity.y = Math.cos(particle.angle);
           

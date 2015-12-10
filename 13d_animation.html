@@ -1,0 +1,156 @@
+<!DOCTYPE HTML>
+<html>
+
+  <head>
+    <script>
+
+
+    var createAnimation = function () {
+      return {
+        len : 0,
+        keyframes : []
+      }
+    }
+
+
+    var addKeyFrame = function (anim, keyframe) {
+      anim.keyframes[anim.len] = keyframe;
+      anim.len ++;
+    }
+
+    var getAnimationValue = function (anim, time) {
+      var i;
+      for (i=0; i<anim.len; i++) {
+        if (time < anim.keyframes[i].time)
+          break; 
+      }
+
+      t0 = anim.keyframes[i-1].time;
+      t1 = anim.keyframes[i].time;
+
+  
+      v0 = anim.keyframes[i-1].value;
+      v1 = anim.keyframes[i].value;
+
+      // map interval [t0, t1] to range [0,1]
+      t = (time - t0) / (t1-t0);
+      return blend(v0,v1,t);
+    }
+
+
+    var blend = function (x0, x1, t) {
+      return x1*t + x0*(1-t);
+    }
+
+    // VARIABLES
+    var canvas;
+    var context;
+    var frameCount;
+    var animR;
+    var animG;
+    var animB;
+    var animX;
+    var animY;
+    
+
+    var init = function() {
+
+      canvas = document.getElementById("myCanvas");
+      context = canvas.getContext('2d');
+      frameCount = 0;
+
+
+      animR = createAnimation();
+      animG = createAnimation();
+      animB = createAnimation();
+      animX = createAnimation();
+      animY = createAnimation();
+
+
+      // set 100 keyframes for colors with fixed interval of 40 frames
+      for (j=0; j<100; j++) {
+        myKeyFrame = {
+          time : j*40,
+          value : Math.round(Math.random()*255)
+        }
+        addKeyFrame (animR, myKeyFrame);
+        
+        myKeyFrame = {
+          time : j*40,
+          value : Math.round(Math.random()*255)
+        }
+        addKeyFrame (animG, myKeyFrame);
+        
+        myKeyFrame = {
+          time : j*40,
+          value : Math.round(Math.random()*255)
+        }
+        addKeyFrame (animB, myKeyFrame);
+      }
+
+      // set 100 keyframes for x / y position with variable intervals
+      t_x = 0;
+      t_y = 0;
+
+      for (j=0; j<1000; j++) {
+
+        myKeyFrame = {
+          time : t_x,
+          value : Math.sin(t_x*Math.PI*0.01)*300+300 //Math.round(Math.random()*500)
+        }
+        addKeyFrame (animX, myKeyFrame);
+        
+
+        myKeyFrame = {
+          time : t_y,
+          value : Math.sin(t_y*Math.PI*0.01+Math.PI/2)*200+140//Math.round(Math.random()*500)
+        }
+        addKeyFrame (animY, myKeyFrame);
+        
+        t_x += (Math.random()*5+1);
+        t_y += (Math.random()*5+1);
+      }
+
+
+    }
+
+    var fillRGB = function (r, g, b) {
+      r = Math.round(r);
+      g = Math.round(g);
+      b = Math.round(b);
+      context.fillStyle = "rgb("+r+", "+g+", "+b+")";
+    }
+
+    var draw = function() {
+
+      context.clearRect (0, 0, canvas.width, canvas.height);  
+
+      r = getAnimationValue (animR, frameCount);
+      g = getAnimationValue (animG, frameCount);
+      b = getAnimationValue (animB, frameCount);
+
+      x = getAnimationValue (animX, frameCount);
+      y = getAnimationValue (animY, frameCount);
+      
+      fillRGB (r,g,b);
+      context.fillRect (x,y,100,100);
+      frameCount = frameCount+1;
+      requestAnimationFrame(draw);
+    };
+
+    </script>
+  </head>
+
+  <body>
+
+
+    <canvas id="myCanvas" width="800" height="600"></canvas>
+
+    <script>
+      init();
+      draw();		
+    </script>
+
+  </body>
+
+</html>      

@@ -1,0 +1,130 @@
+<!DOCTYPE HTML>
+<html>
+
+  <head>
+    <script>
+
+
+    var createAnimation = function () {
+      return {
+        len : 0,
+        keyframes : []
+      }
+    }
+
+
+    var addKeyFrame = function (anim, keyframe) {
+      anim.keyframes[anim.len] = keyframe;
+      anim.len ++;
+    }
+
+    var playAnim = function (anim, time) {
+      var i;
+      for (i=0; i<anim.len; i++) {
+        if (time < anim.keyframes[i].time)
+          break; 
+      }
+
+  
+      t0 = anim.keyframes[i-1].time;
+      t1 = anim.keyframes[i].time;
+
+  
+      v0 = anim.keyframes[i-1].value;
+      v1 = anim.keyframes[i].value;
+
+      t = (time - t0) / (t1-t0);
+      return blend(v0,v1,t);
+    }
+
+    var blend = function (x0, x1, t) {
+      return x1*t + x0*(1-t);
+    }
+
+    var blend2d = function (x0, x1, t) {
+      return {x : blend (x0.x, x1.x, t),
+              y : blend (x0.y, x1.y, t)};
+
+    }
+
+    var blend3d = function (x0, x1, t) {
+      return {x : blend (x0.x, x1.x, t),
+              y : blend (x0.y, x1.y, t),
+              z : blend (x0.z, x1.z, t)};
+
+    }
+
+
+    // VARIABLES
+    var canvas;
+    var context;
+    var frameCount;
+    var animColor;
+    var animPos;
+    
+
+    var init = function() {
+
+      canvas = document.getElementById("myCanvas");
+      context = canvas.getContext('2d');
+      frameCount = 0;
+
+
+      animColor = createAnimation();
+      animPos = createAnimation();
+      
+      for (j=0; j<100; j++) {
+        myKeyFrame = {
+          time : j*40,
+          value : Math.round(Math.random()*255)
+        }
+        addKeyFrame (animR, myKeyFrame);
+        myKeyFrame = {
+          time : j*40,
+          value : Math.round(Math.random()*255)
+        }
+        addKeyFrame (animG, myKeyFrame);
+        myKeyFrame = {
+          time : j*40,
+          value : Math.round(Math.random()*255)
+        }
+        addKeyFrame (animB, myKeyFrame);
+      }
+    }
+
+    var fillRGB = function (r, g, b) {
+      r = Math.round(r);
+      g = Math.round(g);
+      b = Math.round(b);
+      context.fillStyle = "rgb("+r+", "+g+", "+b+")";
+    }
+
+    var draw = function() {
+
+      context.clearRect (0, 0, canvas.width, canvas.height);  
+
+      r = playAnim (animR, frameCount);
+      g = playAnim (animG, frameCount);
+      b = playAnim (animB, frameCount);
+      fillRGB (r,g,b);
+      context.fillRect(0,0,100,100);
+      frameCount = frameCount+1;
+      requestAnimationFrame(draw);
+    };
+
+    </script>
+  </head>
+
+  <body>
+
+
+    <canvas id="myCanvas" width="800" height="600"></canvas>
+
+    <script>
+      init();
+      draw();		
+    </script>
+
+  </body>
+
+</html>      
