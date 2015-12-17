@@ -1,0 +1,176 @@
+<html>
+	<head>
+		<style>
+			body { margin: 0; }
+			canvas { width: 100%; height: 100% }
+		</style>
+	</head>
+	<body>
+		<script src="threeJS/build/three.min.js"></script>
+
+		<script id="vertexShader" type="x-shader/x-vertex">
+
+			precision mediump float;
+			precision mediump int;
+
+			uniform mat4 modelViewMatrix; // optional
+			uniform mat4 projectionMatrix; // optional
+
+			uniform float time;
+
+
+			attribute vec3 position;
+			attribute vec4 color;
+
+			varying vec3 vPosition;
+			varying vec4 vColor;
+
+
+			void main()	{
+				float phase = position.x*0.00001;
+				vec3 newPosition = position + vec3(0.0, sin(time*0.002+phase)*20.0, 0.0);
+				vPosition = newPosition;
+				vColor = vec4(1.0, 1.0, 0.0, 1.0);
+				gl_Position = projectionMatrix * modelViewMatrix * vec4 (newPosition, 1.0 );
+			}
+		</script>
+
+		<script id="fragmentShader" type="x-shader/x-fragment">
+
+			precision mediump float;
+			precision mediump int;
+
+			uniform float time;
+
+			varying vec3 vPosition;
+			varying vec4 vColor;
+
+			void main()	{
+
+				float R = mod(vPosition.x, 100.0) / 100.0;
+				float G = mod(vPosition.y, 40.0) / 40.0;
+				float B = 0.0; //(vPosition.y % 100) / 100.0;
+				
+
+				gl_FragColor = vec4(R, G, B, 1.0);
+			}
+		</script>
+
+
+
+		<script>
+
+		var camera;
+			var createMesh = function() {
+
+				// init geometry
+				var geometry = new THREE.BufferGeometry();
+
+				// init buffers
+
+
+				var N = 100000;
+				var M = 200;
+
+
+				var positions = new Float32Array(4*3*N);
+				var colors    = new Float32Array(4*3*N);
+
+				var size = 0.2;
+				for (var i=0; i<N; i++) {
+
+					x = (i%M) * size;
+					y = Math.round(i/M)*size;
+
+					positions [i*9+0] = -M/2+x;
+					positions [i*9+1] = y;
+					positions [i*9+2] = 0;
+
+					positions [i*9+3] = -M/2+x+size;
+					positions [i*9+4] = y;
+					positions [i*9+5] = 0;
+					
+					positions [i*9+6] = -M/2+x+size;
+					positions [i*9+7] = y+size;
+					positions [i*9+8] = 0;
+					
+
+					colors [i*9+0] = Math.round(i/2);
+					colors [i*9+1] = 0;
+					colors [i*9+2] = 0;
+
+					colors [i*9+3] = Math.round(i/2);
+					colors [i*9+4] = 0;
+					colors [i*9+5] = 0;
+					
+					colors [i*9+6] = Math.round(i/2);
+					colors [i*9+7] = 0;
+					colors [i*9+8] = 0;
+				}
+				
+
+				geometry.addAttribute ("position", new THREE.BufferAttribute(positions, 3));
+				geometry.addAttribute ("color",    new THREE.BufferAttribute(colors, 3));
+				
+				//var material = new THREE.MeshBasicMaterial({ vertexColors: THREE.VertexColors });
+				
+				var myMaterial = new THREE.RawShaderMaterial( {
+					uniforms: {
+						time: { type: "f", value: 1.0 }
+					},
+					vertexShader:   document.getElementById( 'vertexShader' ).textContent,
+					fragmentShader: document.getElementById( 'fragmentShader' ).textContent,
+					side: THREE.DoubleSide,
+					transparent: true
+
+				});
+
+
+				//basicMaterial = new THREE.MeshBasicMaterial({color: 0xffffff});
+				var mesh = new THREE.Mesh (geometry, myMaterial);
+
+				return mesh;
+			}
+
+
+
+
+			var scene = new THREE.Scene();
+			camera = new THREE.PerspectiveCamera (75, window.innerWidth/window.innerHeight, 0.1, 1000 );
+			camera.position.x = -80;
+			camera.position.y = 40;
+			camera.position.z = 20;
+
+			var renderer = new THREE.WebGLRenderer();
+			renderer.setSize( window.innerWidth, window.innerHeight );
+			document.body.appendChild (renderer.domElement);
+
+
+
+			/*
+			var geometry = new THREE.BoxGeometry (1, 1, 1);
+			var material = new THREE.MeshBasicMaterial ({ color: 0x00ff00 });
+			*/
+
+
+			var mesh = createMesh();
+			scene.add(mesh);
+
+
+			var render = function () {
+
+
+				var time = performance.now();
+				camera.position.z = Math.sin(time*0.001)*20+20;
+				console.log(time);
+
+				requestAnimationFrame (render);
+				mesh.material.uniforms.time.value = time;
+
+				renderer.render(scene, camera);
+			};
+
+			render();
+		</script>
+	</body>
+</html>
