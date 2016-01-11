@@ -1,0 +1,104 @@
+<html>
+	<head>
+		<style>
+			body { margin: 0; }
+			canvas { width: 100%; height: 100% }
+		</style>
+
+		<script src="threeJS/build/three.min.js"></script>
+		<script>
+
+
+			var frameCount = 0;			
+			var scene = new THREE.Scene();
+			var camera = new THREE.PerspectiveCamera (75, window.innerWidth/window.innerHeight, 0.1, 1000);
+			var octa;
+			var box;
+
+			var renderer = new THREE.WebGLRenderer();
+
+			var init = function () {
+				
+				renderer.setSize (window.innerWidth, window.innerHeight);
+				document.body.appendChild (renderer.domElement);
+
+				var geometry = new THREE.DodecahedronGeometry (1,0);
+				var material = new THREE.MeshBasicMaterial ({color: 0x00ffff, wireframe:true});
+				octa = new THREE.Mesh (geometry, material);
+
+
+				box = new THREE.Mesh (new THREE.BoxGeometry(1,1,1), material);
+				scene.add (octa);
+				scene.add(box);
+
+				camera.position.z = 12;
+			}
+
+			var normalize = function(vec) {
+				len = vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2];
+				len = Math.sqrt(len);
+				vec[0] /= len;
+				vec[1] /= len;
+				vec[2] /= len;
+
+				return vec;
+			}
+			var makeRotationDir = function (direction, up) {
+		        
+
+		        var xaxis = new THREE.Vector3();
+		        xaxis.crossVectors(direction, up);
+				xaxis.normalize();
+
+		        yaxis = new THREE.Vector3();
+		        yaxis.crossVectors (direction, xaxis);
+		        yaxis.normalize();
+
+		        var column1 = {};
+		        var column2 = {};
+		        var column3 = {};
+
+		        column1.x = xaxis.x;
+		        column1.y = yaxis.x;
+		        column1.z = direction.x;
+
+		        column2.x = xaxis.y;
+		        column2.y = yaxis.y;
+		        column2.z = direction.y;
+
+		        column3.x = xaxis.z;
+		        column3.y = yaxis.z;
+		        column3.z = direction.z;
+
+		        ret =  new THREE.Matrix4();
+		        ret.set (column1.x, column1.y, column1.z, 0,
+		        		 column2.x, column2.y, column2.z, 0,
+		        		 column3.x, column3.y, column3.z, 0);
+
+		        return ret;
+    		}
+
+			var draw = function () {
+
+				octaPos = new THREE.Vector3 (Math.sin(frameCount*0.03)*4, Math.sin(frameCount*0.02+Math.PI/2)*4, Math.sin(frameCount*0.03+Math.PI/2)*4);
+				var mat = makeRotationDir(octaPos, new THREE.Vector3(0,1,0));
+
+				box.geometry = new THREE.BoxGeometry(1,1,1);
+				box.geometry.applyMatrix (mat);
+				
+				octa.position.set (octaPos.x, octaPos.y, octaPos.z);
+				requestAnimationFrame (draw);
+				renderer.render (scene, camera);
+
+				frameCount += 1;
+			};
+
+		</script>
+	</head>
+	<body>
+		<script>
+			init();
+			draw();
+		</script>
+	</body>
+</html>
