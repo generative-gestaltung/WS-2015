@@ -1,0 +1,207 @@
+<!DOCTYPE HTML>
+<html>
+
+  <head>
+    <script src="gg_utils.js"></script>
+    <script>
+
+
+    var N_PARTICLES = 2000;
+    var particles = [];
+      
+    var WIDTH = 800;
+    var HEIGHT = 800;
+
+    var PRESETS = [];
+    var CURRENT_PRESET = {};
+    
+    PRESETS[0] = {
+      particleR : 155,
+      particleG : 0, 
+      particleB : 100,
+      particleSize  : 4,
+      particleTargetBlend : 0
+    };
+
+    PRESETS[1] = {
+      particleR : 0,
+      particleG : 255, 
+      particleB : 0,
+      particleSize  : 7,
+      particleTargetBlend : 1
+    };
+
+    PRESETS[2] = {
+      particleR : 255,
+      particleG : 255, 
+      particleB : 0,
+      particleSize  : 70,
+      particleTargetBlend : 1
+    };
+
+
+
+    var blendAnimation = createAnimation();
+    addKeyFrame (blendAnimation, {frame:0, value:0});
+    addKeyFrame (blendAnimation, {frame:100, value:1});
+    addKeyFrame (blendAnimation, {frame:200, value:0});
+
+/*
+    addKeyFrame (blendAnimation, {frame:200, value:1});
+    addKeyFrame (blendAnimation, {frame:300, value:1});
+    addKeyFrame (blendAnimation, {frame:350, value:0});
+    addKeyFrame (blendAnimation, {frame:400, value:1});
+*/
+
+    var slotAAnimation = createAnimation();
+    var slotBAnimation = createAnimation();
+    
+    addKeyFrame (slotAAnimation, {frame:0, value:0});
+    addKeyFrame (slotAAnimation, {frame:600, value:0});
+  
+    addKeyFrame (slotBAnimation, {frame:0, value:1});
+    addKeyFrame (slotBAnimation, {frame:349, value:1});
+    //addKeyFrame (slotBAnimation, {frame:350, value:2});
+    //addKeyFrame (slotBAnimation, {frame:600, value:2});
+
+    
+
+    var update = function () {
+      freq = 0.01;
+
+      // calculate blend value with a function
+      t = Math.sin(frameCount*freq+3*Math.PI/2)*2;
+      t = constrain(t, 0, 1);
+
+      // get blend value from animation
+      t = playAnim (blendAnimation, frameCount);
+
+      // blend preset
+      A = playAnim (slotAAnimation, frameCount);
+      B = playAnim (slotBAnimation, frameCount);
+
+      CURRENT_PRESET = blendSet (PRESETS[A], PRESETS[B], t);
+    }
+
+
+
+    var drawParticle = function (particle) {
+      context.save(); 
+    
+      S = CURRENT_PRESET.particleSize;
+      fillRGB (context, CURRENT_PRESET.particleR, CURRENT_PRESET.particleG, CURRENT_PRESET.particleB);
+      context.translate(particle.position.x, particle.position.y);
+      context.fillRect(0,0,S,S);
+      context.restore();
+    }
+
+
+    var updateParticle = function (particle) {
+
+      var dampen = 0.8;
+
+      // check constraints
+      var nextPosition = {};
+      nextPosition.x = particle.position.x + particle.velocity.x;
+      nextPosition.y = particle.position.y + particle.velocity.y; 
+
+            
+      // update velocity if outside box
+      if (nextPosition.x>800 || nextPosition.x<0) {
+        particle.velocity.x *= -1;
+      }
+
+      if (nextPosition.y>800 || nextPosition.y<0) {
+        particle.velocity.x += (Math.random()*6-3);
+        particle.velocity.y *= -1;
+      }
+
+      // damp velocity
+      particle.velocity.x *= dampen;
+      particle.velocity.y *= dampen;
+
+      // update particle position
+      particle.position.x += particle.velocity.x;
+      particle.position.y += particle.velocity.y;
+
+
+      // set particle to target
+      particle.position = blend2d (particle.target0, particle.target1, CURRENT_PRESET.particleTargetBlend);
+
+    }
+
+
+
+    var initParticle = function (particle, i) {
+  
+      particle.position = {};
+      particle.position.x = Math.random()*400+300; 
+      particle.position.y = Math.random()*400+200;
+      
+      particle.target0 = {};
+      particle.target0.x = (i%50)*15+300; 
+      particle.target0.y = (i/50)*8+100;
+
+      particle.target1 = {};
+      particle.target1.x = Math.random()*400+400; 
+      particle.target1.y = Math.random()*400+200;
+
+          
+      // random start veloctiy
+      particle.velocity = {};
+      particle.velocity.x = 0;
+      particle.velocity.y = 0;
+    }
+
+
+    var init = function() {
+
+      canvas = document.getElementById("myCanvas");
+      context = canvas.getContext('2d');
+      frameCount = 0;
+
+      // calculate random start position for each particle
+      for (i=0; i<N_PARTICLES; i++) {
+
+        particles[i] = {};
+        particle = particles[i];
+
+        initParticle (particle, i);
+      }
+    }
+
+
+    var draw = function() {
+
+      // global update
+      update();
+
+      context.clearRect (0, 0, canvas.width, canvas.height); 
+
+      // update particles
+      for (i=0; i<N_PARTICLES; i++) {
+        var particle = particles[i];
+        updateParticle(particle);
+        drawParticle (particle);
+      }
+      
+      frameCount = frameCount+1;
+      requestAnimationFrame(draw);
+    };
+
+    </script>
+  </head>
+
+  <body>
+
+
+    <canvas id="myCanvas" width="800" height="800"></canvas>
+
+    <script>
+      init();
+      draw();		
+    </script>
+
+  </body>
+
+</html>      

@@ -1,0 +1,181 @@
+<!DOCTYPE HTML>
+<html>
+
+  <head>
+    <script src="gg_utils.js"></script>
+    <script>
+
+
+    var N_PARTICLES = 2000;
+    var particles = [];
+      
+    var WIDTH = 800;
+    var HEIGHT = 800;
+
+    var paths = [];
+    var NPATHS = 10;
+
+    var PRESETS = [];
+    var CURRENT_PRESET = {};
+    
+    PRESETS[0] = {
+      particleR : 155,
+      particleG : 0, 
+      particleB : 100,
+      particleSize  : 4
+    };
+
+    PRESETS[1] = {
+      particleR : 0,
+      particleG : 255, 
+      particleB : 0,
+      particleSize  : 7
+    };
+
+
+    var updateAnimation = function () {
+      t = Math.sin(frameCount*0.01)*0.5+0.5;
+      CURRENT_PRESET = blendSet (PRESETS[0], PRESETS[1], t);
+    }
+
+
+    var initPaths = function() {
+
+      for (var i=0; i<NPATHS; i++) {
+        paths[i] = {t : createAnimation(),
+                    path0 : [],
+                    path1 : []
+                  };
+      }
+
+
+/*
+      for (var i=0; i<15; i++) {
+        
+        path0[i] = {
+          x : Math.sin(i/15*Math.PI*2)*100+100, //Math.random()*200+100,
+          y : Math.cos(i/15*Math.PI*2)*100+100 //Math.random()*200+100
+        };
+
+        path1[i] = {
+          x : Math.random()*200+100,
+          y : Math.random()*200+100
+        };
+      }
+*/
+    }
+
+    var drawPath = function (p) {
+       path = blendPaths (path0, path1, t);
+      drawPath (context, path);
+    }
+    
+    var initParticles = function() {
+      for (var i=0; i<N_PARTICLES; i++) {
+        particles[i] = {};
+        particle = particles[i];
+        initParticle(particle);
+      }
+    }
+
+    var initParticle = function (particle) {
+  
+      particle.position = {};
+      particle.position.x = Math.random()*400+300; 
+      particle.position.y = Math.random()*400+200;
+
+      // random start veloctiy
+      particle.velocity = {};
+      particle.velocity.x = 0;
+      particle.velocity.y = 0;
+    }
+
+    var updateParticle = function (particle) {
+
+      var dampen = 0.8;
+
+      // check constraints
+      var nextPosition = {};
+      nextPosition.x = particle.position.x + particle.velocity.x;
+      nextPosition.y = particle.position.y + particle.velocity.y;    
+            
+      // update velocity if outside box
+      if (nextPosition.x>800 || nextPosition.x<0) {
+        particle.velocity.x *= -1;
+      }
+
+      if (nextPosition.y>800 || nextPosition.y<0) {
+        particle.velocity.x += (Math.random()*6-3);
+        particle.velocity.y *= -1;
+      }
+
+      // damp velocity
+      particle.velocity.x *= dampen;
+      particle.velocity.y *= dampen;
+
+      // update particle position
+      particle.position.x += particle.velocity.x;
+      particle.position.y += particle.velocity.y;
+    }
+
+
+    var drawParticle = function (particle) {
+      context.save(); 
+    
+      S = CURRENT_PRESET.particleSize;
+      fillRGB (context, CURRENT_PRESET.particleR, CURRENT_PRESET.particleG, CURRENT_PRESET.particleB);
+      context.translate(particle.position.x, particle.position.y);
+      context.fillRect(0,0,S,S);
+      context.restore();
+    }
+
+
+    var init = function() {
+
+      canvas = document.getElementById("myCanvas");
+      context = canvas.getContext('2d');
+      frameCount = 0;
+
+      initPaths();
+      initParticles();
+    }
+
+
+    var draw = function() {
+
+      updateAnimation();
+      // the center moves on a circle around the point (50,50)
+      context.clearRect (0, 0, canvas.width, canvas.height); 
+
+      // iterate over squares
+      for (var i=0; i<N_PARTICLES; i++) {
+        var particle = particles[i];
+        updateParticle(particle);
+        drawParticle (particle);
+      }
+      
+      for (var i=0; i<NPATHS; i++) {
+        drawPath(paths[i]);
+      }
+
+      //initData();
+      frameCount = frameCount+1;
+      requestAnimationFrame(draw);
+    };
+
+    </script>
+  </head>
+
+  <body>
+
+
+    <canvas id="myCanvas" width="800" height="800"></canvas>
+
+    <script>
+      init();
+      draw();		
+    </script>
+
+  </body>
+
+</html>      

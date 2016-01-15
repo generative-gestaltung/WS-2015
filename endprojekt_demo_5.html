@@ -1,0 +1,204 @@
+<!DOCTYPE HTML>
+<html>
+
+  <head>
+    <script src="gg_utils.js"></script>
+    <script>
+
+
+    var N_PARTICLES = 2000;
+    var particles = [];
+      
+    var WIDTH = 1200;
+    var HEIGHT = 800;
+
+    var pathObjects = [];
+
+    var PRESETS = [];
+    var CURRENT_PRESET = {};
+    var CURRENT_PATH;
+    
+    var blendAnim = createAnimation();
+    addKeyFrame (blendAnim, {frame: 0, value: 0});
+    addKeyFrame (blendAnim, {frame: 100, value: 1});
+    addKeyFrame (blendAnim, {frame:10000, value: 1});
+
+
+    PRESETS[0] = {
+      particleR : 155,
+      particleG : 0, 
+      particleB : 100,
+      particleSize  : 4
+    };
+
+    PRESETS[1] = {
+      particleR : 0,
+      particleG : 255, 
+      particleB : 0,
+      particleSize  : 7
+    };
+
+
+
+    var createAnimatedPath = function(nPoints, offsetX, offsetY, R) {
+      ret = {
+        path0 : [],
+        path1 : [],
+        currentPath : []
+      };
+
+      for (var i=0; i<nPoints; i++) {
+        ret.path0[i] = {x: offsetX+Math.sin(i/nPoints*2*Math.PI)*rand(10,10)*R,
+                        y: offsetY+Math.cos(i/nPoints*2*Math.PI)*rand(10,10)*R};
+        ret.path1[i] = {x: offsetX+Math.random()*65-34,
+                        y: offsetY+Math.random()*2,};
+      }
+      return ret;
+    }
+
+
+
+
+    var updateAnimation = function () {
+
+      t = Math.sin(frameCount*0.1)*0.5+0.5;
+      CURRENT_PRESET = blendSet (PRESETS[0], PRESETS[1], t);
+      
+
+      for (var i=0; i<pathObjects.length; i++) {
+        
+        t = playAnim (blendAnim, frameCount-i*0.1);
+        //t = Math.sin(frameCount*0.02+i*0.0015)*2+1;
+        //t = constrain(t,0,1);
+        pathObjects[i].currentPath = blendPaths (pathObjects[i].path0, 
+                                                pathObjects[i].path1,
+                                                t);
+      }
+    }
+
+
+    var initPaths = function() {
+      for (var i=0; i<2000; i++) {
+        pathObjects[i] = createAnimatedPath (10, (i%50)*15+25, Math.floor(i/50)*15+25, (i%200)*0.002+0.5);
+      }
+    }
+
+    var initParticles = function() {
+      for (var i=0; i<N_PARTICLES; i++) {
+        particles[i] = {};
+        particle = particles[i];
+        initParticle(particle);
+      }
+    }
+
+    var initParticle = function (particle) {
+  
+      particle.position = {};
+      particle.position.x = Math.random()*400+300; 
+      particle.position.y = Math.random()*400+200;
+
+      // random start veloctiy
+      particle.velocity = {};
+      particle.velocity.x = 0;
+      particle.velocity.y = 0;
+
+      particle.type = Math.floor(Math.random(0,3.9999));
+    }
+
+    var updateParticle = function (particle) {
+
+      var dampen = 0.8;
+
+      // check constraints
+      var nextPosition = {};
+      nextPosition.x = particle.position.x + particle.velocity.x;
+      nextPosition.y = particle.position.y + particle.velocity.y;    
+            
+      // update velocity if outside box
+      if (nextPosition.x>800 || nextPosition.x<0) {
+        particle.velocity.x *= -1;
+      }
+
+      if (nextPosition.y>800 || nextPosition.y<0) {
+        particle.velocity.x += (Math.random()*6-3);
+        particle.velocity.y *= -1;
+      }
+
+      // damp velocity
+      particle.velocity.x *= dampen;
+      particle.velocity.y *= dampen;
+
+      // update particle position
+      particle.position.x += particle.velocity.x;
+      particle.position.y += particle.velocity.y;
+    }
+
+
+    var drawParticle = function (particle) {
+      context.save(); 
+    
+
+      if (particle.type==0) {
+
+      }
+      else if (particle.type==1) {
+
+      }
+
+      S = CURRENT_PRESET.particleSize;
+      fillRGB (context, CURRENT_PRESET.particleR, CURRENT_PRESET.particleG, CURRENT_PRESET.particleB);
+      context.translate(particle.position.x, particle.position.y);
+      context.fillRect(0,0,S,S);
+      context.restore();
+    }
+
+
+    var init = function() {
+
+      canvas = document.getElementById("myCanvas");
+      context = canvas.getContext('2d');
+      frameCount = 0;
+
+      initPaths();
+      initParticles();
+    }
+
+
+    var draw = function() {
+
+      updateAnimation();
+      // the center moves on a circle around the point (50,50)
+      context.clearRect (0, 0, canvas.width, canvas.height); 
+
+      // iterate over squares
+      for (var i=0; i<N_PARTICLES; i++) {
+        var particle = particles[i];
+        updateParticle(particle);
+        //drawParticle (particle);
+      }
+      
+      for (var i=0; i<pathObjects.length; i++) {
+        drawPath (context, pathObjects[i].currentPath);
+      }
+
+      //initData();
+      frameCount = frameCount+1;
+      requestAnimationFrame(draw);
+    };
+
+    </script>
+  </head>
+
+  <body>
+
+
+    <canvas id="myCanvas" width="1200" height="800"></canvas>
+
+    <script>
+      init();
+      draw();		
+    </script>
+
+  </body>
+
+</html>      
