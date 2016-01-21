@@ -1,0 +1,208 @@
+<!DOCTYPE HTML>
+<html>
+
+  <head>
+    <script src="gg_utils.js"></script>
+    <script>
+
+
+    var path_hills = [];
+    var path_houses = [];
+    var windows = [];
+    var sky = [];
+
+    var N_RANDOM = 5000;
+    var RANDOM_TABLE = [];
+    var rand_count = 0;
+
+
+    var initHills = function () {
+
+      // base frequency
+      freq = 0.005;  
+
+      // maximum amplitude
+      MAX_H = 75;
+
+      // shift the whole path in y-direction
+      var OFFSET_Y = 400;
+
+      for (var i=0; i<canvas.width; i++) {
+
+        var x_tmp = i;
+
+        // modulate amplitude with low frequency sin
+        A = MAX_H * Math.sin(i*freq*0.4);
+        A *= Math.sin(i*freq*0.27);
+
+        // modulate frequency
+        var f = freq + Math.sin(i*0.001)*0.005;
+        
+        // calculate height
+        var y_tmp = A * Math.sin(i*f);
+        
+
+        // add offset
+        y_tmp += OFFSET_Y;
+
+        path_hills[i] = {x: x_tmp,
+                         y: y_tmp};
+
+      }
+    }
+
+
+    // get random value between x0 & x1 from table
+    var rand_t = function (min, max) {
+      var ret = min + RANDOM_TABLE[rand_count]*(max-min);
+      rand_count = (rand_count+1)%N_RANDOM;
+      return ret;
+    }
+
+
+
+    var count = 0;
+    var lastY = 0;
+    var stepLength = 20;
+    var winSize = 4;
+    var OFFSET_Y = 150;  
+    var house_i = 0;
+      
+    var calcNextHousePixel = function (i) {
+      var x_tmp = i;
+      var y_tmp = lastY + OFFSET_Y;
+
+        if (count == stepLength) {
+          count = 0;
+          stepLength = Math.round(rand_t(3,6))*winSize;
+          lastY = rand_t(100,200);
+        }
+
+        if (i%10==0) {
+          for (var j=0; j<y_tmp*0.1; j++) {
+
+            var onTmp = 0;
+
+            if (rand_t(0,1)<0.2) {
+              onTmp = 1;
+            }
+            windows.push({x: x_tmp, y: y_tmp + j*2*winSize, 
+                          size:winSize, on:onTmp});
+          }
+        }
+
+        count++;
+
+        if (i>2000 && i<2500)
+          y_tmp *= 1.5;
+
+        path_houses.push({x: x_tmp,
+                          y: y_tmp});
+
+    }
+
+    var initHouses = function () {
+
+      for (house_i=0; house_i<canvas.width; house_i++) {
+        calcNextHousePixel(house_i);
+      }
+    }
+
+    var initRandom = function() {
+      for (var i=0; i<N_RANDOM; i++) {
+        RANDOM_TABLE[i] = Math.random();
+      }
+    }
+
+
+
+    var init = function() {
+
+      canvas = document.getElementById("myCanvas");
+      context = canvas.getContext('2d');
+      
+      initRandom();
+      initHills();
+      initHouses();
+
+      frameCount = 0;    
+    }
+
+    var moveHouses = function () {
+      path_houses.shift();
+      house_i+=1;
+      calcNextHousePixel(house_i);
+    }
+
+    var drawPath = function (thePath, theColor) {
+      context.beginPath(); 
+
+      x0 = 0;
+      y0 = canvas.height;
+      context.moveTo(x0, y0);
+      
+      for (var i=0; i<thePath.length; i++) {
+        context.lineTo (thePath[i].x, thePath[i].y);
+      }
+      context.lineTo (thePath[thePath.length-1].x, y0);
+            
+      context.closePath();
+
+      context.fillStyle = theColor;
+      context.fill();
+    }
+
+    var drawRects = function (theRects, theColor) {
+      for (var i=0; i<theRects.length; i++) {
+
+        if (theRects[i].on==0) {
+          context.fillStyle = "#000000";
+        }
+        else {
+          context.fillStyle = theColor;
+        }
+        var r = theRects[i];
+        context.fillRect (r.x, r.y, r.size, r.size)
+      }
+    }
+
+
+    var draw = function() {
+
+      context.clearRect (0, 0, canvas.width, canvas.height); 
+
+
+      // draw paths
+      context.save();
+      context.translate (-frameCount*2,0);
+      moveHouses();
+      moveHouses();
+      drawPath (path_houses, "#555555");
+      drawRects (windows, "#ffff00");
+      context.restore();
+
+      context.save();
+      context.translate (-frameCount*2.5,0);
+      drawPath (path_hills, "#22ff50");
+      context.restore();
+
+
+      frameCount = frameCount+1;
+      requestAnimationFrame(draw);
+    };
+
+    </script>
+  </head>
+
+  <body>
+
+
+    <canvas id="myCanvas" width="1200" height="600"></canvas>
+    <script>
+      init();
+      draw();		
+    </script>
+
+  </body>
+
+</html>      

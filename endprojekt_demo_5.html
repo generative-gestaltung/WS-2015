@@ -24,34 +24,19 @@
     addKeyFrame (blendAnim, {frame:10000, value: 1});
 
 
-    PRESETS[0] = {
-      particleR : 155,
-      particleG : 0, 
-      particleB : 100,
-      particleSize  : 4
-    };
-
-    PRESETS[1] = {
-      particleR : 0,
-      particleG : 255, 
-      particleB : 0,
-      particleSize  : 7
-    };
-
-
-
-    var createAnimatedPath = function(nPoints, offsetX, offsetY, R) {
+    var createAnimatedPath = function (resolution, offsetX, offsetY, R) {
       ret = {
         path0 : [],
         path1 : [],
         currentPath : []
       };
 
-      for (var i=0; i<nPoints; i++) {
-        ret.path0[i] = {x: offsetX+Math.sin(i/nPoints*2*Math.PI)*rand(10,10)*R,
-                        y: offsetY+Math.cos(i/nPoints*2*Math.PI)*rand(10,10)*R};
-        ret.path1[i] = {x: offsetX+Math.random()*65-34,
-                        y: offsetY+Math.random()*2,};
+      for (var i=0; i<resolution; i++) {
+        ret.path0[i] = {x: offsetX+Math.sin(i/resolution*2*Math.PI)*rand(10,40)*R,
+                        y: offsetY+Math.cos(i/resolution*2*Math.PI)*rand(10,40)*R};
+
+        ret.path1[i] = {x: offsetX+Math.random()*2,
+                        y: offsetY+Math.random()*65-34};
       }
       return ret;
     }
@@ -67,9 +52,8 @@
 
       for (var i=0; i<pathObjects.length; i++) {
         
-        t = playAnim (blendAnim, frameCount-i*0.1);
-        //t = Math.sin(frameCount*0.02+i*0.0015)*2+1;
-        //t = constrain(t,0,1);
+        t = playAnim (blendAnim, frameCount-i);
+
         pathObjects[i].currentPath = blendPaths (pathObjects[i].path0, 
                                                 pathObjects[i].path1,
                                                 t);

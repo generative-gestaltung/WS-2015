@@ -18,20 +18,6 @@
     var CURRENT_PRESET = {};
     var CURRENT_PATH;
     
-    
-    PRESETS[0] = {
-      particleR : 155,
-      particleG : 0, 
-      particleB : 100,
-      particleSize  : 4
-    };
-
-    PRESETS[1] = {
-      particleR : 0,
-      particleG : 255, 
-      particleB : 0,
-      particleSize  : 7
-    };
 
 
 
@@ -60,8 +46,10 @@
       CURRENT_PRESET = blendSet (PRESETS[0], PRESETS[1], t);
       
       for (var i=0; i<pathObjects.length; i++) {
-        t = Math.sin(frameCount*0.02+i*0.0015)*2+1;
+
+        t = Math.sin(frameCount*0.02+i*0.15)*2+1;
         t = constrain(t,0,1);
+        
         pathObjects[i].currentPath = blendPaths (pathObjects[i].path0, 
                                                 pathObjects[i].path1,
                                                 t);
